@@ -5,8 +5,8 @@ use structopt::{clap::AppSettings, StructOpt};
 #[derive(StructOpt, Debug)]
 pub struct Sysroot {
     /// Path to `Cargo.toml`
-    #[structopt(long, default_value = "./Cargo.toml")]
-    pub manifest_path: PathBuf,
+    #[structopt(long)]
+    pub manifest_path: Option<PathBuf>,
 
     /// Path to target directory.
     #[structopt(long, default_value = "./target/sysroot/target")]
@@ -32,11 +32,6 @@ pub struct Sysroot {
     /// If not specified, uses the `rust-src` component from rustup.
     #[structopt(long)]
     pub rust_src_dir: Option<PathBuf>,
-
-    /// The [profile] section from `Cargo.toml`.
-    /// Some use-cases require the sysroot crates be built with this matching.
-    #[structopt(skip)]
-    pub cargo_profile: Option<Profile>,
 }
 
 #[derive(StructOpt, Debug)]

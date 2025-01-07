@@ -73,12 +73,13 @@ fn generate_cargo_config(target: &Path, sysroot: &Path) -> Result<()> {
 
 fn main() -> Result<()> {
     let Args::Sysroot(mut args) = Args::from_args();
-    let toml: CargoToml =
-        from_path(&args.manifest_path).with_context(|| args.manifest_path.display().to_string())?;
+    let manifest_path = args.manifest_path.clone().unwrap_or("./Cargo.toml".into());
+    let toml: Result<CargoToml> =
+        from_path(&manifest_path).with_context(|| manifest_path.display().to_string());
 
     if args.target.is_none() {
         args.target = Some(
-            toml.package
+            toml?.package
                 .metadata
                 .context("Missing package metadata")?
                 .get("cargo-sysroot")
@@ -95,8 +96,6 @@ fn main() -> Result<()> {
         args.rust_src_dir = Some(get_rust_src()?)
     }
 
-    args.cargo_profile = toml.profile;
-
     clean_artifacts(&args.sysroot_dir)?;
     fs::create_dir_all(&args.sysroot_dir).context("Couldn't create sysroot directory")?;
 
@@ -109,8 +108,10 @@ fn main() -> Result<()> {
     }
 
     let mut sys = SysrootBuilder::new(cargo_sysroot::Sysroot::Alloc);
-    sys.manifest(args.manifest_path)
-        .output(args.sysroot_dir)
+    if let Some(path) = args.manifest_path {
+        sys.manifest(path);
+    }
+    sys.output(args.sysroot_dir)
         .target(args.target.expect("BUG: Missing target triple?"))
         .features(&[Features::CompilerBuiltinsMem]);
     if let Some(rust_src) = args.rust_src_dir {
