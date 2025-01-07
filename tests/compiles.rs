@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use cargo_sysroot::{Sysroot, SysrootBuilder};
+use cargo_sysroot_2::{Sysroot, SysrootBuilder};
 
 /// Test that all targets compile as expected.
 #[test]

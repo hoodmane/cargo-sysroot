@@ -1,10 +1,10 @@
 [package]
-name = "cargo-sysroot"
-version = "0.8.1"
-authors = ["Diana"]
+name = "cargo-sysroot-2"
+version = "0.9.0"
+authors = ["Diana", "Hood"]
 #
 readme = "README.md"
-repository = "https://github.com/DianaNites/cargo-sysroot"
+repository = "https://github.com/hoodmane/cargo-sysroot"
 description = "Simply and Easily cross-compile the Rust sysroot crates."
 license = "MIT OR Apache-2.0"
 keywords = ["sysroot", "libcore", "no_std", "cross", "compilation"]

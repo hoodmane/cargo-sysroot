@@ -15,7 +15,7 @@ mod args;
 #[allow(dead_code)]
 mod util;
 use crate::{args::*, util::get_rust_src};
-use cargo_sysroot::*;
+use cargo_sysroot_2::*;
 
 /// Create a `.cargo/config` to use our target and sysroot.
 fn generate_cargo_config(target: &Path, sysroot: &Path) -> Result<()> {
@@ -107,7 +107,7 @@ fn main() -> Result<()> {
             .context("Couldn't create .cargo/config.toml")?;
     }
 
-    let mut sys = SysrootBuilder::new(cargo_sysroot::Sysroot::Alloc);
+    let mut sys = SysrootBuilder::new(cargo_sysroot_2::Sysroot::Alloc);
     if let Some(path) = args.manifest_path {
         sys.manifest(path);
     }
