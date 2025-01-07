@@ -51,17 +51,6 @@ pub fn get_rust_src() -> Result<PathBuf> {
         .join("src")
         .join("rust")
         .join("library");
-    if root
-        .file_stem()
-        .and_then(|f| f.to_str())
-        .and_then(|s| s.split('-').next())
-        .context("Error parsing rust-src path")?
-        != "nightly"
-    {
-        return Err(anyhow!(
-            "A nightly Rust version is required to build the sysroot"
-        ));
-    }
     Ok(sys)
 }
 
