@@ -312,93 +312,6 @@ fn generate_sysroot_cargo_toml(builder: &SysrootBuilder) -> Result<PathBuf> {
             ..Default::default()
         }),
         workspace: Some(Workspace::default()),
-        dependencies: Some({
-            let mut deps = BTreeMap::new();
-            match builder.sysroot_crate {
-                Sysroot::Core => {
-                    deps.insert(
-                        "core".into(),
-                        Dependency::Full(DependencyFull {
-                            path: Some(builder.rust_src.as_ref().unwrap().join("core")),
-                            ..Default::default()
-                        }),
-                    );
-                }
-
-                Sysroot::CompilerBuiltins => {
-                    deps.insert(
-                        "compiler_builtins".into(),
-                        Dependency::Full(DependencyFull {
-                            version: Some("0.1".into()),
-                            features: {
-                                let mut f = vec!["rustc-dep-of-std".into()];
-                                if builder.features.contains(&Features::CompilerBuiltinsMem) {
-                                    f.push("mem".into());
-                                }
-                                Some(f)
-                            },
-                            ..Default::default()
-                        }),
-                    );
-                }
-
-                Sysroot::Alloc => {
-                    deps.insert(
-                        "alloc".into(),
-                        Dependency::Full(DependencyFull {
-                            path: Some(builder.rust_src.as_ref().unwrap().join("alloc")),
-                            features: if builder.features.contains(&Features::CompilerBuiltinsMem) {
-                                Some(vec!["compiler-builtins-mem".into()])
-                            } else {
-                                None
-                            },
-                            ..Default::default()
-                        }),
-                    );
-                }
-
-                Sysroot::Std => {
-                    deps.insert(
-                        "std".into(),
-                        Dependency::Full(DependencyFull {
-                            path: Some(builder.rust_src.as_ref().unwrap().join("std")),
-                            features: if builder.features.contains(&Features::CompilerBuiltinsMem) {
-                                Some(vec!["compiler-builtins-mem".into()])
-                            } else {
-                                None
-                            },
-                            ..Default::default()
-                        }),
-                    );
-                }
-            }
-            deps
-        }),
-        patch: Some(Patches {
-            sources: if let Sysroot::Core = builder.sysroot_crate {
-                BTreeMap::new()
-            } else {
-                let mut sources = BTreeMap::new();
-                sources.insert("crates-io".into(), {
-                    let mut x = BTreeMap::new();
-                    x.insert(
-                        "rustc-std-workspace-core".to_string(),
-                        Dependency::Full(DependencyFull {
-                            path: Some(
-                                builder
-                                    .rust_src
-                                    .as_ref()
-                                    .unwrap()
-                                    .join("rustc-std-workspace-core"),
-                            ),
-                            ..Default::default()
-                        }),
-                    );
-                    x
-                });
-                sources
-            },
-        }),
         profile: {
             match &builder.manifest {
                 Some(manifest) => {
@@ -427,6 +340,7 @@ fn build_alloc(alloc_cargo_toml: &Path, builder: &SysrootBuilder) -> Result<()> 
     // TODO: Eat output if up to date? Always? On error?
     let exit = Command::new(env::var_os("CARGO").unwrap_or_else(|| "cargo".into()))
         .arg("rustc")
+        .arg("-Zbuild-std")
         .arg("--release")
         .arg("--target")
         // If it doesn't work, assume it's a builtin path?
@@ -435,10 +349,6 @@ fn build_alloc(alloc_cargo_toml: &Path, builder: &SysrootBuilder) -> Result<()> 
         .arg(&target_dir)
         .arg("--manifest-path")
         .arg(path)
-        .arg("--") // Pass to rustc directly.
-        .arg("-Z")
-        // The rust build system only passes this for rustc? xbuild passes this for alloc. 🤷‍♀️
-        .arg("force-unstable-if-unmarked")
         .env("RUSTFLAGS", {
             let mut env = OsString::new();
             if let Some(exist) = std::env::var_os("RUSTFLAGS") {
